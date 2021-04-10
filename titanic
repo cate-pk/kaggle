@@ -1,0 +1,99 @@
+# Titanic: Machine Learning from Disaster
+# Download data from here : https://www.kaggle.com/c/titanic/data
+
+# Explaining the data
+# Variable          Definition                                          Key
+#-------------------------------------------------------------------------------------------------------------------------
+# survival          Survival                                            0 = No, 1 = Yes
+# pclass            Ticket                                              class	1 = 1st, 2 = 2nd, 3 = 3rd
+# sex               Sex	
+# Age               Age in years	
+# sibsp	            # of siblings / spouses aboard the Titanic	
+# parch             # of parents / children aboard the Titanic	
+# ticket            Ticket number	
+# fare              Passenger fare	
+# cabin             Cabin number	
+# embarked          Port of Embarkation                                 C = Cherbourg, Q = Queenstown, S = Southampton
+#-------------------------------------------------------------------------------------------------------------------------
+
+# import pandas library for data analysis
+import pandas as pd
+
+# import training data and test data, set Passenger ID as index
+# difference between two data : training data has information whether the passenger survived or not, while the test data doesn't
+train = pd.read_csv(".../train.csv", index_col="PassengerId")
+test = pd.read_csv(".../test.csv", index_col="PassengerId")
+
+# review the data size
+print(train.shape)
+print(test.shape)
+
+# look at the first five data
+train.head()
+test.head()
+
+# Analysis data
+# Survival rate : PClass 1 > PClass 2 > PClass 3
+train[['Pclass', 'Survived']].groupby(['Pclass'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+# Survival rate : female > male
+train[["Sex", "Survived"]].groupby(['Sex'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+
+# Survival rate : 1 > 2 > 0 > 3 > 4 > 5 > 8
+train[["SibSp", "Survived"]].groupby(['SibSp'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+# Survival rate : 3 > 1 > 2 > 0 > 5 > 4 > 6
+train[["Parch", "Survived"]].groupby(['Parch'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+# Survival rate : 3 > 2 > 1 > 6 > 0 > 4 > 5 > 7 > 10
+train["family"] = train["Parch"] + train["SibSp"] + 1
+train[["family", "Survived"]].groupby(['family'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+# -> Conclusion : survival rate grows if you have less family member
+
+# Survival rate : C = Cherbourg > Q = Queenstown > S = Southampton
+train[["Embarked", "Survived"]].groupby(['Embarked'], as_index=False).mean().sort_values(by='Survived', ascending=False)
+
+# Preprocessing
+
+# Match columns
+test["family"] = test["Parch"] + test["SibSp"] + 1
+
+# Encode "Sex" column
+train.loc[train["Sex"] == "male", "Sex_encode"] = 0
+train.loc[train["Sex"] == "female", "Sex_encode"] = 1
+test.loc[test["Sex"] == "male", "Sex_encode"] = 0
+test.loc[test["Sex"] == "female", "Sex_encode"] = 1
+
+# Encode "Embarked" column
+train["Embarked_C"] = train["Embarked"] == "C"
+train["Embarked_S"] = train["Embarked"] == "S"
+train["Embarked_Q"] = train["Embarked"] == "Q"
+test["Embarked_C"] = test["Embarked"] == "C"
+test["Embarked_S"] = test["Embarked"] == "S"
+test["Embarked_Q"] = test["Embarked"] == "Q"
+
+# Remove null data
+train[train["Fare"].isnull()]
+test[test["Fare"].isnull()]
+train["Fare_filled"] = train["Fare"]
+test["Fare_filled"] = test["Fare"]
+test.loc[test["Fare"].isnull(), "Fare_fillin"] = 0
+
+# Prepare for training
+feature_names = ["Pclass", "Sex_encode", "Fare_fill_in", "Embarked_C", "Embarked_S", "Embarked_Q", "family"]
+label_name = "Survived"
+
+X_train = train[feature_names]
+X_test = test[feature_names]
+y_train = train[label_name]
+
+from sklearn.tree import DecisionTreeClassifier
+model = DecisionTreeClassifier(max_depth=8, random_state=0)
+model.fit(X_train, y_train)
+
+# Predict
+predictions = model.predict(X_test)
+
+# Submit
+submission = pd.read_csv(".../gender_submission.csv", index_col="PassengerId")
+submission["Survived"] = predictions
+submission.to_csv(".../prediction_submission.csv")
+
+
