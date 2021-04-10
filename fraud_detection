@@ -23,14 +23,6 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.model_selection import StratifiedKFold, train_test_split
 import lightgbm as lgb
 
-# set seed
-def seed_everything(seed=0):
-    random.seed(seed)
-    np.random.seed(seed)
-
-seed = 42
-seed_everything(seed)
-
 # load data
 train_identity = pd.read_csv('.../train_identity.csv')
 train_transaction = pd.read_csv(f'.../train_transaction.csv')
