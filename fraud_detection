@@ -1,0 +1,50 @@
+# importing libraries
+import numpy as np
+import pandas as pd
+
+import warnings
+warnings.filterwarnings("ignore")
+
+from IPython.display import display
+pd.options.display.precision = 15
+pd.options.display.max_rows = 10000
+pd.options.display.max_columns = 10000
+pd.options.display.max_colwidth = 1000
+
+import matplotlib.pyplot as plt
+import seaborn as sns
+%matplotlib inline
+
+import datetime
+from numba import jit
+import random
+
+from sklearn.preprocessing import LabelEncoder
+from sklearn.model_selection import StratifiedKFold, train_test_split
+import lightgbm as lgb
+
+# set seed
+def seed_everything(seed=0):
+    random.seed(seed)
+    np.random.seed(seed)
+
+seed = 42
+seed_everything(seed)
+
+# load data
+train_identity = pd.read_csv('.../train_identity.csv')
+train_transaction = pd.read_csv(f'.../train_transaction.csv')
+test_identity = pd.read_csv('.../test_identity.csv')
+test_transaction = pd.read_csv('.../test_transaction.csv')
+sub = pd.read_csv('.../sample_submission.csv')
+train = pd.merge(train_transaction, train_identity, on='TransactionID', how='left')
+test = pd.merge(test_transaction, test_identity, on='TransactionID', how='left')
+
+# Analysing data
+plt.hist(train['TransactionDT'], label='train')
+plt.hist(test['TransactionDT'], label='test')
+plt.legend()
+
+### to be continued#############
+
+
